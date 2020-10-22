@@ -39,19 +39,18 @@ const MonthTable = {
       this.__emit('select', value);
     },
     chooseMonth(month) {
-      const next = this.sValue.clone();
-      next.month(month);
+      const next = this.sValue.clone().month(month);
       this.setAndSelectValue(next);
     },
     months() {
       const value = this.sValue;
-      const current = value.clone();
+      let current = value.clone();
       const months = [];
       let index = 0;
       for (let rowIndex = 0; rowIndex < ROW; rowIndex++) {
         months[rowIndex] = [];
         for (let colIndex = 0; colIndex < COL; colIndex++) {
-          current.month(index);
+          current = current.month(index);
           const content = getMonthName(current);
           months[rowIndex][colIndex] = {
             value: index,
@@ -76,8 +75,7 @@ const MonthTable = {
       const tds = month.map(monthData => {
         let disabled = false;
         if (disabledDate) {
-          const testValue = value.clone();
-          testValue.month(monthData.value);
+          const testValue = value.clone().month(monthData.value);
           disabled = disabledDate(testValue);
         }
         const classNameMap = {
@@ -89,14 +87,12 @@ const MonthTable = {
         };
         let cellEl;
         if (cellRender) {
-          const currentValue = value.clone();
-          currentValue.month(monthData.value);
+          const currentValue = value.clone().month(monthData.value);
           cellEl = cellRender({ current: currentValue, locale });
         } else {
           let content;
           if (contentRender) {
-            const currentValue = value.clone();
-            currentValue.month(monthData.value);
+            const currentValue = value.clone().month(monthData.value);
             content = contentRender({ current: currentValue, locale });
           } else {
             content = monthData.content;

@@ -21,14 +21,12 @@ const CalendarHeader = {
   },
   methods: {
     onYearChange(year) {
-      const newValue = this.value.clone();
-      newValue.year(parseInt(year, 10));
+      const newValue = this.value.clone().year(parseInt(year, 10));
       this.__emit('valueChange', newValue);
     },
 
     onMonthChange(month) {
-      const newValue = this.value.clone();
-      newValue.month(parseInt(month, 10));
+      const newValue = this.value.clone().month(parseInt(month, 10));
       this.__emit('valueChange', newValue);
     },
 
@@ -58,11 +56,11 @@ const CalendarHeader = {
 
     monthSelectElement(month) {
       const { value, Select, prefixCls } = this;
-      const t = value.clone();
+      let t = value.clone();
       const options = [];
 
       for (let index = 0; index < 12; index++) {
-        t.month(index);
+        t = t.month(index);
         options.push(<Select.Option key={`${index}`}>{(() => getMonthName(t))()}</Select.Option>);
       }
 

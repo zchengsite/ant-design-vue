@@ -11,9 +11,10 @@ function goYear(direction) {
 }
 
 function chooseDecade(year, event) {
-  const next = this.sValue.clone();
-  next.year(year);
-  next.month(this.sValue.month());
+  const next = this.sValue
+    .clone()
+    .year(year)
+    .month(this.sValue.month());
   this.__emit('select', next);
   event.preventDefault();
 }

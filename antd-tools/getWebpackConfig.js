@@ -81,7 +81,7 @@ function getWebpackConfig(modules) {
     ].reduce((acc, name) => Object.assign({}, acc, { [name]: 'empty' }), {}),
 
     module: {
-      noParse: [/moment.js/],
+      // noParse: [/moment.js/],
       rules: [
         {
           test: /\.vue$/,

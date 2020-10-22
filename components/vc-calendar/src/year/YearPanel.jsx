@@ -11,9 +11,10 @@ function goYear(direction) {
 }
 
 function chooseYear(year) {
-  const value = this.sValue.clone();
-  value.year(year);
-  value.month(this.sValue.month());
+  const value = this.sValue
+    .clone()
+    .year(year)
+    .month(this.sValue.month());
   this.sValue = value;
   this.__emit('select', value);
 }

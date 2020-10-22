@@ -1,5 +1,4 @@
 import { CSSProperties, defineComponent, inject } from 'vue';
-import moment from 'moment';
 import RangeCalendar from '../vc-calendar/src/RangeCalendar';
 import VcDatePicker from '../vc-calendar/src/Picker';
 import classNames from '../_util/classNames';
@@ -7,7 +6,6 @@ import shallowequal from '../_util/shallowequal';
 import CloseCircleFilled from '@ant-design/icons-vue/CloseCircleFilled';
 import Tag from '../tag';
 import { defaultConfigProvider } from '../config-provider';
-import interopDefault from '../_util/interopDefault';
 import { RangePickerProps } from './props';
 import { hasProp, getOptionProps, getComponent } from '../_util/props-util';
 import BaseMixin from '../_util/BaseMixin';
@@ -15,16 +13,17 @@ import { formatDate } from './utils';
 import InputIcon from './InputIcon';
 import { getDataAndAriaProps } from '../_util/util';
 import initDefaultProps from '../_util/props-util/initDefaultProps';
+import dayjs from '../_util/dayjs';
 
 type RangePickerValue =
   | undefined[]
   | null[]
-  | [moment.Moment]
-  | [undefined, moment.Moment]
-  | [moment.Moment, undefined]
-  | [null, moment.Moment]
-  | [moment.Moment, null]
-  | [moment.Moment, moment.Moment];
+  | [dayjs.Dayjs]
+  | [undefined, dayjs.Dayjs]
+  | [dayjs.Dayjs, undefined]
+  | [null, dayjs.Dayjs]
+  | [dayjs.Dayjs, null]
+  | [dayjs.Dayjs, dayjs.Dayjs];
 
 export type RangePickerPresetRange = RangePickerValue | (() => RangePickerValue);
 function getShowDateFromValue(value: RangePickerValue, mode?: string | string[]) {
@@ -40,9 +39,7 @@ function getShowDateFromValue(value: RangePickerValue, mode?: string | string[])
   return [start, newEnd] as RangePickerValue;
 }
 
-function pickerValueAdapter(
-  value?: moment.Moment | RangePickerValue,
-): RangePickerValue | undefined {
+function pickerValueAdapter(value?: dayjs.Dayjs | RangePickerValue): RangePickerValue | undefined {
   if (!value) {
     return;
   }
@@ -86,19 +83,15 @@ export default defineComponent({
   data(): RangePickerState {
     const value = this.value || this.defaultValue || [];
     const [start, end] = value;
-    if (
-      (start && !interopDefault(moment).isMoment(start)) ||
-      (end && !interopDefault(moment).isMoment(end))
-    ) {
-      throw new Error(
-        'The value/defaultValue of RangePicker must be a moment object array after `antd@2.0`, ' +
-          'see: https://u.ant.design/date-picker-value',
-      );
+    if ((start && !dayjs.isDayjs(start)) || (end && !dayjs.isDayjs(end))) {
+      throw new Error('The value/defaultValue of RangePicker must be a dayjs object array');
     }
-    const pickerValue = !value || isEmptyArray(value) ? this.defaultPickerValue : value;
+    const pickerValue: dayjs.Dayjs = (!value || isEmptyArray(value)
+      ? this.defaultPickerValue
+      : value) as any;
     return {
       sValue: value as RangePickerValue,
-      sShowDate: pickerValueAdapter(pickerValue || interopDefault(moment)()),
+      sShowDate: pickerValueAdapter(pickerValue || dayjs()),
       sOpen: this.open,
       sHoverValue: [],
     };

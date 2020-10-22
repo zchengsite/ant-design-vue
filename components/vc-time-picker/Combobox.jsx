@@ -46,36 +46,36 @@ const Combobox = {
   methods: {
     onItemChange(type, itemValue) {
       const { defaultOpenValue, use12Hours, value: propValue, isAM } = this;
-      const value = (propValue || defaultOpenValue).clone();
+      let value = (propValue || defaultOpenValue).clone();
 
       if (type === 'hour') {
         if (use12Hours) {
           if (isAM) {
-            value.hour(+itemValue % 12);
+            value = value.hour(+itemValue % 12);
           } else {
-            value.hour((+itemValue % 12) + 12);
+            value = value.hour((+itemValue % 12) + 12);
           }
         } else {
-          value.hour(+itemValue);
+          value = value.hour(+itemValue);
         }
       } else if (type === 'minute') {
-        value.minute(+itemValue);
+        value = value.minute(+itemValue);
       } else if (type === 'ampm') {
         const ampm = itemValue.toUpperCase();
         if (use12Hours) {
           if (ampm === 'PM' && value.hour() < 12) {
-            value.hour((value.hour() % 12) + 12);
+            value = value.hour((value.hour() % 12) + 12);
           }
 
           if (ampm === 'AM') {
             if (value.hour() >= 12) {
-              value.hour(value.hour() - 12);
+              value = value.hour(value.hour() - 12);
             }
           }
         }
         this.__emit('amPmChange', ampm);
       } else {
-        value.second(+itemValue);
+        value = value.second(+itemValue);
       }
       this.__emit('change', value);
     },

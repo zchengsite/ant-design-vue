@@ -1,7 +1,7 @@
 import PropTypes from '../../../_util/vue-types';
 import BaseMixin from '../../../_util/BaseMixin';
 import { getComponent, findDOMNode } from '../../../_util/props-util';
-import moment from 'moment';
+import dayjs from '../../../_util/dayjs';
 import { formatDate } from '../util';
 import KeyCode from '../../../_util/KeyCode';
 import { withDirectives } from 'vue';
@@ -112,7 +112,7 @@ const DateInput = {
       }
 
       // 不合法直接退出
-      const parsed = moment(str, format, true);
+      const parsed = dayjs(str, format, true);
       if (!parsed.isValid()) {
         this.setState({
           invalid: true,
@@ -120,8 +120,8 @@ const DateInput = {
         });
         return;
       }
-      const value = this.value.clone();
-      value
+      let value = this.value.clone();
+      value = value
         .year(parsed.year())
         .month(parsed.month())
         .date(parsed.date())

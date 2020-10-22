@@ -6,7 +6,7 @@ const { webpack } = getWebpackConfig;
 // http://stackoverflow.com/q/25384360
 function ignoreMomentLocale(webpackConfig) {
   delete webpackConfig.module.noParse;
-  webpackConfig.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/));
+  webpackConfig.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /dayjs$/));
 }
 
 function addLocales(webpackConfig) {
@@ -19,11 +19,11 @@ function addLocales(webpackConfig) {
 }
 
 function externalMoment(config) {
-  config.externals.moment = {
-    root: 'moment',
-    commonjs2: 'moment',
-    commonjs: 'moment',
-    amd: 'moment',
+  config.externals.dayjs = {
+    root: 'dayjs',
+    commonjs2: 'dayjs',
+    commonjs: 'dayjs',
+    amd: 'dayjs',
   };
 }
 

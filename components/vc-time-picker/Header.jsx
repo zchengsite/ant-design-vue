@@ -1,6 +1,6 @@
 import PropTypes from '../_util/vue-types';
 import BaseMixin from '../_util/BaseMixin';
-import moment from 'moment';
+import dayjs from '../_util/dayjs';
 import { withDirectives } from 'vue';
 import antInput from '../_util/antInputDirective';
 
@@ -83,7 +83,7 @@ const Header = {
 
       if (str) {
         const value = this.getProtoValue().clone();
-        const parsed = moment(str, format, true);
+        const parsed = dayjs(str, format, true);
         if (!parsed.isValid()) {
           this.setState({
             invalid: true,
@@ -129,10 +129,11 @@ const Header = {
             originalValue.second() !== value.second()
           ) {
             // keep other fields for rc-calendar
-            const changedValue = originalValue.clone();
-            changedValue.hour(value.hour());
-            changedValue.minute(value.minute());
-            changedValue.second(value.second());
+            const changedValue = originalValue
+              .clone()
+              .hour(value.hour())
+              .minute(value.minute())
+              .second(value.second());
             this.__emit('change', changedValue);
           }
         } else if (originalValue !== value) {

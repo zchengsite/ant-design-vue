@@ -1,4 +1,3 @@
-import moment from 'moment';
 import classNames from '../_util/classNames';
 import PropTypes from '../_util/vue-types';
 import BaseMixin from '../_util/BaseMixin';
@@ -14,6 +13,7 @@ import Trigger from '../vc-trigger';
 import Panel from './Panel';
 import placements from './placements';
 import { defineComponent } from 'vue';
+import dayjs from '../_util/dayjs';
 
 function noop() {}
 function refFn(field, component) {
@@ -32,7 +32,7 @@ export default defineComponent({
       defaultOpenValue: {
         type: Object,
         default: () => {
-          return moment();
+          return dayjs();
         },
       },
       inputReadOnly: PropTypes.looseBool,

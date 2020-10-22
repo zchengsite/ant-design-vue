@@ -1,6 +1,6 @@
 import { provide, App, defineComponent, VNode, PropType } from 'vue';
 import PropTypes from '../_util/vue-types';
-import moment from 'moment';
+import dayjs from '../_util/dayjs';
 import interopDefault from '../_util/interopDefault';
 import { ModalLocale, changeConfirmLocale } from '../modal/locale';
 import warning from '../_util/warning';
@@ -29,9 +29,9 @@ export const ANT_MARK = 'internalMark';
 
 function setMomentLocale(locale?: Locale) {
   if (locale && locale.locale) {
-    interopDefault(moment).locale(locale.locale);
+    interopDefault(dayjs).locale(locale.locale);
   } else {
-    interopDefault(moment).locale('en');
+    interopDefault(dayjs).locale('en');
   }
 }
 
