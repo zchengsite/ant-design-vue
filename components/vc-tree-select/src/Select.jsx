@@ -29,8 +29,6 @@ import KeyCode from '../../_util/KeyCode';
 import SelectTrigger from './SelectTrigger';
 import SingleSelector from './Selector/SingleSelector';
 import MultipleSelector from './Selector/MultipleSelector';
-import SinglePopup from './Popup/SinglePopup';
-import MultiplePopup from './Popup/MultiplePopup';
 
 import { SHOW_ALL, SHOW_PARENT, SHOW_CHILD } from './strategies';
 import BaseMixin from '../../_util/BaseMixin';
@@ -58,6 +56,7 @@ import {
   getPropsData,
   findDOMNode,
 } from '../../_util/props-util';
+import BasePopup from './Popup/MultiplePopup';
 function getWatch(keys = []) {
   const watch = {};
   keys.forEach(k => {
@@ -217,13 +216,19 @@ const Select = defineComponent({
       this.setState(state);
       this.needSyncKeys = {};
     },
-    '$data._valueList'() {
+    _valueList() {
       this.$nextTick(() => {
         this.forcePopupAlign();
       });
     },
-    '$data._open'(open) {
+    _open(open) {
       this.$nextTick(() => {
+        if (!open && !this.isSearchValueControlled()) {
+          this.setState({ _searchValue: '' });
+        }
+        if (open && !this.$data._searchValue) {
+          this.setState({ _filteredTreeNodes: null });
+        }
         const { prefixCls } = this.$props;
         const { _selectorValueList: selectorValueList, _valueEntities: valueEntities } = this.$data;
         const isMultiple = this.isMultiple();
@@ -240,12 +245,11 @@ const Select = defineComponent({
             raf(() => {
               const popupNode = findDOMNode(this.popup);
               const triggerContainer = findPopupContainer(popupNode, `${prefixCls}-dropdown`);
-              const searchNode = this.popup.searchRef.current;
 
-              if (domNode && triggerContainer && searchNode) {
+              if (domNode && triggerContainer) {
                 scrollIntoView(domNode, triggerContainer, {
                   onlyScrollIfNeeded: true,
-                  offsetTop: searchNode.offsetHeight,
+                  offsetTop: 0,
                 });
               }
             });
@@ -490,7 +494,6 @@ const Select = defineComponent({
             newState._valueEntities || prevState._valueEntities,
           );
       });
-
       return newState;
     },
     // ==================== Selector ====================
@@ -638,7 +641,6 @@ const Select = defineComponent({
         disabled,
         inputValue,
         treeNodeLabelProp,
-        multiple,
         treeCheckable,
         treeCheckStrictly,
         autoClearSearchValue,
@@ -698,7 +700,7 @@ const Select = defineComponent({
       // Clean up `searchValue` when this prop is set
       if (autoClearSearchValue || inputValue === null) {
         // Clean state `searchValue` if uncontrolled
-        if (!this.isSearchValueControlled() && (multiple || treeCheckable)) {
+        if (!this.isSearchValueControlled()) {
           this.setUncontrolledState({
             _searchValue: '',
             _filteredTreeNodes: null,
@@ -849,7 +851,6 @@ const Select = defineComponent({
       if (isSet) {
         // Do the search logic
         const upperSearchValue = String(value).toUpperCase();
-
         let filterTreeNodeFn = filterTreeNode;
         if (filterTreeNode === false) {
           filterTreeNodeFn = () => true;
@@ -1092,11 +1093,10 @@ const Select = defineComponent({
       ref: this.setPopupRef,
     };
 
-    const Popup = isMultiple ? MultiplePopup : SinglePopup;
-    const $popup = <Popup {...popupProps} __propsSymbol__={[]} />;
+    const $popup = <BasePopup {...popupProps} __propsSymbol__={[]} />;
 
     const Selector = isMultiple ? MultipleSelector : SingleSelector;
-    const $selector = <Selector {...passProps} ref={this.selectorRef} />;
+    const $selector = <Selector {...passProps} isMultiple={isMultiple} ref={this.selectorRef} />;
     const selectTriggerProps = {
       ...passProps,
       popupElement: $popup,

@@ -1,11 +1,10 @@
-import { TransitionGroup } from 'vue';
+import { defineComponent, TransitionGroup } from 'vue';
 import raf from '../_util/raf';
 import ListItem from './ListItem';
 import PropTypes, { withUndefined } from '../_util/vue-types';
-import getTransitionProps from '../_util/getTransitionProps';
 import { findDOMNode } from '../_util/props-util';
-function noop() {}
-const ListBody = {
+import getTransitionGroupProps from '../_util/getTransitionGroupProps';
+const ListBody = defineComponent({
   name: 'ListBody',
   inheritAttrs: false,
   props: {
@@ -18,13 +17,19 @@ const ListBody = {
     onItemSelectAll: PropTypes.func,
     onScroll: PropTypes.func,
   },
+  setup() {
+    return {
+      mountId: null,
+      lazyId: null,
+    };
+  },
   data() {
     return {
       mounted: false,
     };
   },
   computed: {
-    itemsLength() {
+    itemsLength(): number {
       return this.filteredRenderItems ? this.filteredRenderItems.length : 0;
     },
   },
@@ -74,7 +79,7 @@ const ListBody = {
       selectedKeys,
       disabled: globalDisabled,
     } = this.$props;
-    const items = filteredRenderItems.map(({ renderedEl, renderedText, item }) => {
+    const items = filteredRenderItems.map(({ renderedEl, renderedText, item }: any) => {
       const { disabled } = item;
       const checked = selectedKeys.indexOf(item.key) >= 0;
 
@@ -92,20 +97,20 @@ const ListBody = {
         />
       );
     });
-    const transitionProps = getTransitionProps(
+    const transitionProps = getTransitionGroupProps(
       mounted ? `${prefixCls}-content-item-highlight` : '',
       {
         tag: 'ul',
+        class: `${prefixCls}-content`,
         onScroll: this.handleScroll,
-        onLeave: noop,
       },
     );
     return (
-      <TransitionGroup class={`${prefixCls}-content`} {...transitionProps}>
+      <TransitionGroup {...transitionProps}>
         {items}
       </TransitionGroup>
     );
   },
-};
+});
 
 export default props => <ListBody {...props} />;

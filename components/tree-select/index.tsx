@@ -1,9 +1,10 @@
 import VcTreeSelect, { TreeNode, SHOW_ALL, SHOW_PARENT, SHOW_CHILD } from '../vc-tree-select';
-import { inject } from 'vue';
+import { App, defineComponent, inject } from 'vue';
 import classNames from '../_util/classNames';
 import { TreeSelectProps } from './interface';
 import warning from '../_util/warning';
-import { initDefaultProps, getOptionProps, getComponent, getSlot } from '../_util/props-util';
+import { getOptionProps, getComponent, getSlot } from '../_util/props-util';
+import initDefaultProps from '../_util/props-util/initDefaultProps';
 import { defaultConfigProvider } from '../config-provider';
 
 export { TreeData, TreeSelectProps } from './interface';
@@ -11,10 +12,11 @@ import LoadingOutlined from '@ant-design/icons-vue/LoadingOutlined';
 import CaretDownOutlined from '@ant-design/icons-vue/CaretDownOutlined';
 import DownOutlined from '@ant-design/icons-vue/DownOutlined';
 import CloseOutlined from '@ant-design/icons-vue/CloseOutlined';
-import CloseCircleOutlined from '@ant-design/icons-vue/CloseCircleOutlined';
+import CloseCircleFilled from '@ant-design/icons-vue/CloseCircleFilled';
 import omit from 'omit.js';
+import { convertChildrenToData } from './utils';
 
-const TreeSelect = {
+const TreeSelect = defineComponent({
   TreeNode,
   SHOW_ALL,
   SHOW_PARENT,
@@ -28,6 +30,7 @@ const TreeSelect = {
   }),
   setup() {
     return {
+      vcTreeSelect: null,
       configProvider: inject('configProvider', defaultConfigProvider),
     };
   },
@@ -39,7 +42,7 @@ const TreeSelect = {
     );
   },
   methods: {
-    saveTreeSelect(node) {
+    saveTreeSelect(node: any) {
       this.vcTreeSelect = node;
     },
     focus() {
@@ -49,7 +52,7 @@ const TreeSelect = {
     blur() {
       this.vcTreeSelect.blur();
     },
-    renderSwitcherIcon(prefixCls, { isLeaf, loading }) {
+    renderSwitcherIcon(prefixCls: string, { isLeaf, loading }) {
       if (loading) {
         return <LoadingOutlined class={`${prefixCls}-switcher-loading-icon`} />;
       }
@@ -58,19 +61,19 @@ const TreeSelect = {
       }
       return <CaretDownOutlined class={`${prefixCls}-switcher-icon`} />;
     },
-    handleChange(...args) {
+    handleChange(...args: any[]) {
       this.$emit('update:value', args[0]);
       this.$emit('change', ...args);
     },
-    handleTreeExpand(...args) {
+    handleTreeExpand(...args: any[]) {
       this.$emit('update:treeExpandedKeys', args[0]);
       this.$emit('treeExpand', ...args);
     },
-    handleSearch(...args) {
+    handleSearch(...args: any[]) {
       this.$emit('update:searchValue', args[0]);
       this.$emit('search', ...args);
     },
-    updateTreeData(treeData) {
+    updateTreeData(treeData: any[]) {
       const { $slots } = this;
       const defaultFields = {
         children: 'children',
@@ -111,7 +114,7 @@ const TreeSelect = {
   },
 
   render() {
-    const props = getOptionProps(this);
+    const props: any = getOptionProps(this);
     const {
       prefixCls: customizePrefixCls,
       size,
@@ -121,10 +124,9 @@ const TreeSelect = {
       ...restProps
     } = props;
     const { class: className } = this.$attrs;
-    const getPrefixCls = this.configProvider.getPrefixCls;
+    const { renderEmpty, getPrefixCls } = this.configProvider;
     const prefixCls = getPrefixCls('select', customizePrefixCls);
 
-    const renderEmpty = this.configProvider.renderEmpty;
     const notFoundContent = getComponent(this, 'notFoundContent');
     const removeIcon = getComponent(this, 'removeIcon');
     const clearIcon = getComponent(this, 'clearIcon');
@@ -145,7 +147,7 @@ const TreeSelect = {
     const cls = {
       [`${prefixCls}-lg`]: size === 'large',
       [`${prefixCls}-sm`]: size === 'small',
-      [className]: className,
+      [className as string]: className,
     };
 
     // showSearch: single - false, multiple - true
@@ -163,9 +165,7 @@ const TreeSelect = {
 
     const finalRemoveIcon = removeIcon || <CloseOutlined class={`${prefixCls}-remove-icon`} />;
 
-    const finalClearIcon = clearIcon || (
-      <CloseCircleOutlined class={`${prefixCls}-clear-icon`} theme="filled" />
-    );
+    const finalClearIcon = clearIcon || <CloseCircleFilled class={`${prefixCls}-clear-icon`} />;
     const VcTreeSelectProps = {
       ...this.$attrs,
       switcherIcon: nodeProps => this.renderSwitcherIcon(prefixCls, nodeProps),
@@ -180,13 +180,12 @@ const TreeSelect = {
       dropdownStyle: { maxHeight: '100vh', overflow: 'auto', ...dropdownStyle },
       treeCheckable: checkable,
       notFoundContent: notFoundContent || renderEmpty('Select'),
-      ...(treeData ? { treeData } : {}),
       class: cls,
       onChange: this.handleChange,
       onSearch: this.handleSearch,
       onTreeExpand: this.handleTreeExpand,
       ref: this.saveTreeSelect,
-      children: getSlot(this),
+      treeData: treeData ? treeData : convertChildrenToData(getSlot(this)),
     };
     return (
       <VcTreeSelect
@@ -196,13 +195,21 @@ const TreeSelect = {
       />
     );
   },
-};
+});
 
 /* istanbul ignore next */
-TreeSelect.install = function(app) {
+TreeSelect.install = function(app: App) {
   app.component(TreeSelect.name, TreeSelect);
   app.component('ATreeSelectNode', TreeSelect.TreeNode);
   return app;
 };
 
-export default TreeSelect;
+export default TreeSelect as typeof TreeSelect & {
+  readonly TreeNode: typeof TreeNode;
+
+  readonly SHOW_ALL: typeof SHOW_ALL;
+
+  readonly SHOW_PARENT: typeof SHOW_PARENT;
+
+  readonly SHOW_CHILD: typeof SHOW_CHILD;
+};

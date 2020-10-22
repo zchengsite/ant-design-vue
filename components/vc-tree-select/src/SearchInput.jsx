@@ -4,8 +4,8 @@
  * - multiple: in the selector
  * Move the code as a SearchInput for easy management.
  */
-import { inject, withDirectives } from 'vue';
-import antInput from '../../_util/antInputDirective';
+import BaseInput from '../../_util/BaseInput';
+import { inject, ref, onMounted, computed, watch } from 'vue';
 import PropTypes from '../../_util/vue-types';
 import { createRef } from './util';
 
@@ -20,33 +20,51 @@ const SearchInput = {
     renderPlaceholder: PropTypes.func,
     needAlign: PropTypes.looseBool,
     ariaId: PropTypes.string,
+    isMultiple: PropTypes.looseBool.def(true),
   },
-  setup() {
+  setup(props, { emit }) {
+    const measureRef = ref();
+    const inputWidth = ref(0);
+    const mirrorSearchValue = ref(props.searchValue);
+    watch(
+      computed(() => props.searchValue),
+      () => {
+        mirrorSearchValue.value = props.searchValue;
+      },
+    );
+    watch(
+      mirrorSearchValue,
+      () => {
+        emit('mirrorSearchValueChange', mirrorSearchValue.value);
+      },
+      { immediate: true },
+    );
+    // We measure width and set to the input immediately
+    onMounted(() => {
+      if (props.isMultiple) {
+        watch(
+          mirrorSearchValue,
+          () => {
+            inputWidth.value = measureRef.value.scrollWidth;
+          },
+          { flush: 'post', immediate: true },
+        );
+      }
+    });
     return {
+      measureRef,
+      inputWidth,
       vcTreeSelect: inject('vcTreeSelect', {}),
+      mirrorSearchValue,
     };
-  },
-  data() {
-    return {
-      mirrorSearchValue: this.searchValue,
-    };
-  },
-  watch: {
-    searchValue(val) {
-      this.mirrorSearchValue = val;
-    },
   },
   created() {
     this.inputRef = createRef();
-    this.mirrorInputRef = createRef();
     this.prevProps = { ...this.$props };
   },
   mounted() {
     this.$nextTick(() => {
-      const { open, needAlign } = this.$props;
-      if (needAlign) {
-        this.alignInputWidth();
-      }
+      const { open } = this.$props;
 
       if (open) {
         this.focus(true);
@@ -55,29 +73,17 @@ const SearchInput = {
   },
 
   updated() {
-    const { open, searchValue, needAlign } = this.$props;
+    const { open } = this.$props;
     const { prevProps } = this;
     this.$nextTick(() => {
       if (open && prevProps.open !== open) {
         this.focus();
       }
-      if (needAlign && searchValue !== prevProps.searchValue) {
-        this.alignInputWidth();
-      }
+
       this.prevProps = { ...this.$props };
     });
   },
   methods: {
-    /**
-     * `scrollWidth` is not correct in IE, do the workaround.
-     * ref: https://github.com/react-component/tree-select/issues/65
-     *  clientWidth 0 when mounted in vue. why?
-     */
-    alignInputWidth() {
-      this.inputRef.current.style.width = `${this.mirrorInputRef.current.clientWidth ||
-        this.mirrorInputRef.current.offsetWidth}px`;
-    },
-
     /**
      * Need additional timeout for focus cause parent dom is not ready when didMount trigger
      */
@@ -111,16 +117,28 @@ const SearchInput = {
   },
 
   render() {
-    const { searchValue, prefixCls, disabled, renderPlaceholder, open, ariaId } = this.$props;
+    const {
+      searchValue,
+      prefixCls,
+      disabled,
+      renderPlaceholder,
+      open,
+      ariaId,
+      isMultiple,
+    } = this.$props;
     const {
       vcTreeSelect: { onSearchInputKeyDown },
       handleInputChange,
       mirrorSearchValue,
+      inputWidth,
     } = this;
     return (
-      <span class={`${prefixCls}-search__field__wrap`}>
-        {withDirectives(
-          <input
+      <>
+        <span
+          class={`${prefixCls}-selection-search`}
+          style={isMultiple ? { width: inputWidth + 'px' } : {}}
+        >
+          <BaseInput
             type="text"
             ref={this.inputRef}
             onInput={handleInputChange}
@@ -128,19 +146,20 @@ const SearchInput = {
             onKeydown={onSearchInputKeyDown}
             value={searchValue}
             disabled={disabled}
-            class={`${prefixCls}-search__field`}
+            class={`${prefixCls}-selection-search-input`}
             aria-label="filter select"
             aria-autocomplete="list"
             aria-controls={open ? ariaId : undefined}
             aria-multiline="false"
-          />,
-          [[antInput]],
-        )}
-        <span ref={this.mirrorInputRef} class={`${prefixCls}-search__field__mirror`}>
-          {mirrorSearchValue}&nbsp;
+          />
+          {isMultiple ? (
+            <span ref="measureRef" class={`${prefixCls}-selection-search-mirror`} aria-hidden>
+              {mirrorSearchValue}&nbsp;
+            </span>
+          ) : null}
         </span>
         {renderPlaceholder && !mirrorSearchValue ? renderPlaceholder() : null}
-      </span>
+      </>
     );
   },
 };
