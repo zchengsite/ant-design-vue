@@ -204,7 +204,7 @@
     "@ant-design-vue/use": "^0.0.1-0",
     "@ant-design/icons-vue": "^5.1.6",
     "@babel/runtime": "^7.10.5",
-    "@simonwep/pickr": "~1.7.0",
+    "@simonwep/pickr": "~1.8.0",
     "add-dom-event-listener": "^1.0.2",
     "array-tree-filter": "^2.1.0",
     "async-validator": "^3.3.0",
